@@ -13,7 +13,7 @@ public class MovementMapper extends BaseMapper<Movement, MovementDTO> {
         movement.setMoment(item.getMoment());
         movement.setType(item.getType());
         movement.setValue(item.getValue());
-        movement.setUser(item.getUser());
+        movement.setUserDTO(item.getUserDTO());
         return movement;
     }
 
@@ -24,7 +24,7 @@ public class MovementMapper extends BaseMapper<Movement, MovementDTO> {
                 .moment(item.getMoment())
                 .type(item.getType())
                 .value(item.getValue())
-                .user(item.getUser())
+                .userDTO(item.getUserDTO())
                 .build();
     }
 

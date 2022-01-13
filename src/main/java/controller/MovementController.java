@@ -1,5 +1,7 @@
 package controller;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import dto.MovementDTO;
 import org.bson.types.ObjectId;
 import repository.MovementRepository;
@@ -52,30 +54,41 @@ public class MovementController {
         }
     }
 
-    public MovementDTO postMovement(MovementDTO userDTO) {
+    public MovementDTO postMovement(MovementDTO movementDTO) {
         try {
-            return movementService.postMovement(userDTO);
+            return movementService.postMovement(movementDTO);
         } catch (SQLException e) {
             System.err.println("Error MovementsController en postMovement: " + e.getMessage());
             return null;
         }
     }
 
-    public MovementDTO updateMovement(MovementDTO userDTO) {
+    public MovementDTO updateMovement(MovementDTO movementDTO) {
         try {
-            return movementService.updateMovement(userDTO);
+            return movementService.updateMovement(movementDTO);
         } catch (SQLException e) {
             System.err.println("Error MovementsController en updateMovement: " + e.getMessage());
             return null;
         }
     }
 
-    public MovementDTO deleteMovement(MovementDTO userDTO) {
+    public MovementDTO deleteMovement(MovementDTO movementDTO) {
         try {
-            return movementService.deleteMovement(userDTO);
+            return movementService.deleteMovement(movementDTO);
         } catch (SQLException e) {
             System.err.println("Error MovementsController en deleteMovement: " + e.getMessage());
             return null;
         }
     }
+
+    public String getAllMovementsJSON() {
+        try {
+            final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
+            return prettyGson.toJson(movementService.getAllMovements().stream().limit(25));
+        } catch (SQLException e) {
+            System.err.println("Error MovementsController en getAllMovementsJSON: " + e.getMessage());
+            return "error";
+        }
+    }
+
 }

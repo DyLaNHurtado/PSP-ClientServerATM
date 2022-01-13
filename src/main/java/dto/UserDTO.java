@@ -1,13 +1,17 @@
 package dto;
 
 import lombok.Builder;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 
 @Builder
 public class UserDTO {
+    @BsonProperty("_id")
+    @BsonId
     private ObjectId id;
-    private long email;
-    private int pin;
+    private String email;
+    private String pin;
     private float cash;
 
     public ObjectId getId() {
@@ -18,19 +22,19 @@ public class UserDTO {
         this.id = id;
     }
 
-    public long getEmail() {
+    public String getEmail() {
         return email;
     }
 
-    public void setEmail(long email) {
+    public void setEmail(String email) {
         this.email = email;
     }
 
-    public int getPin() {
+    public String getPin() {
         return pin;
     }
 
-    public void setPin(int pin) {
+    public void setPin(String pin) {
         this.pin = pin;
     }
 

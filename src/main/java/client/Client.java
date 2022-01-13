@@ -31,10 +31,15 @@ public class Client {
     DataInputStream dataInputStream = null;
     DataOutputStream dataOutputStream = null;
 
-    public void start() throws ClassNotFoundException {
-        checkAddress();
-        logIn();
-        mainMenu();
+    public void startClient() {
+        try {
+            checkAddress();
+            logIn();
+            mainMenu();
+        } catch (ClassNotFoundException e) {
+            System.err.println("Client -> ERROR: Could not logIn");
+        }
+
     }
 
     /**
@@ -144,23 +149,23 @@ public class Client {
         Scanner sc = new Scanner(System.in);
 
         System.out.println("How much cash do you want to withdraw ? REMAINING DAILY LIMIT: " + DAILY_LIMIT);
-        if(DAILY_LIMIT==0){
+        if (DAILY_LIMIT == 0) {
             System.out.println("You have reached your daily limit");
             System.out.println("Backing to menu...");
             mainMenu();
         }
-        if(userDTO.getCash()==0){
+        if (userDTO.getCash() == 0) {
             System.out.println("Bad news... you have run out of cash...");
             System.out.println("Backing to menu...");
             mainMenu();
         }
         int value = sc.nextInt();
-        if(userDTO.getCash()<value){
+        if (userDTO.getCash() < value) {
             System.out.println("You can't withdraw that amount because you don't have it");
             System.out.println("Backing to menu...");
             mainMenu();
-        }else{
-            userDTO.setCash(userDTO.getCash()-value);
+        } else {
+            userDTO.setCash(userDTO.getCash() - value);
             //TODO Mandar al servidor el nuevo usuario
         }
 
@@ -171,25 +176,24 @@ public class Client {
         Scanner sc = new Scanner(System.in);
         System.out.println("How much you want to deposit ? (0-1000)");
         int value = sc.nextInt();
-        if(value<0||value>1000){
+        if (value < 0 || value > 1000) {
             System.out.println("You can not deposit that amount make sure it is between 0 and 1000");
             System.out.println("Backing to menu...");
             mainMenu();
         }
-        userDTO.setCash(userDTO.getCash()+value);
+        userDTO.setCash(userDTO.getCash() + value);
         //TODO Mandar al servidor el nuevo usuario
 
     }
 
     private void consultCash() {
         //TODO Mandar al servidor que quieres hacer a traves de un movement
-        System.out.println("You have "+userDTO.getCash()+" €");
+        System.out.println("You have " + userDTO.getCash() + " €");
     }
 
     private void consultMovements() {
-        System.out.println("Your lastest movements "+userDTO.getCash()+" €");
+        System.out.println("Your lastest movements " + userDTO.getCash() + " €");
     }
-
 
 
     private void exit() {
@@ -219,7 +223,6 @@ public class Client {
     }
 
 
-
     private void logIn() throws ClassNotFoundException {
 
         // "email":"admin@admin.org","pin":1234
@@ -228,15 +231,14 @@ public class Client {
 
         Scanner sc = new Scanner(System.in);
         System.out.println("Input your email:");
-        long email = sc.nextLong();
-        if(!Utils.getInstance().validateEmail(String.valueOf(email))){
+        String email = sc.nextLine();
+        if (!Utils.getInstance().validateEmail(String.valueOf(email))) {
             System.out.println("Incorrect email pattern, try again");
             logIn();
         }
         System.out.println("Input your PIN:");
-        int pin = Integer.parseInt(Utils.getInstance().toSHA512(sc.nextLine().toString())); // Encripting
+        String pin = Utils.getInstance().toSHA512(sc.nextLine()); // Encripting
 
-        // Nos conectamos al servidor
         this.connectServer();
         // If connect go to identify
         if (this.isConnected) {
@@ -247,12 +249,12 @@ public class Client {
                 dataOutputStream.writeInt(LOGIN);
 
                 // Send to server the email and PIN
-                dataOutputStream.writeUTF(String.valueOf(email));
-                dataOutputStream.writeUTF(String.valueOf(pin));
+                dataOutputStream.writeUTF(email);
+                dataOutputStream.writeUTF(pin);
 
                 // Recibimos la respuesta
-                boolean correcto = dataInputStream.readBoolean();
-                if (correcto) {
+                boolean isCorrect = dataInputStream.readBoolean();
+                if (isCorrect) {
                     // Recibimos el token de conexion
                     TOKEN = dataInputStream.readLong();
                 } else {
@@ -261,7 +263,7 @@ public class Client {
                     this.mainMenu();
                 }
             } catch (IOException ex) {
-                System.err.println("Client->ERROR: I cannot identify " + ex.getMessage());
+                System.err.println("Client->ERROR: Cannot identify " + ex.getMessage());
             }
         } else {
             System.out.println("Client: Could not be identified");

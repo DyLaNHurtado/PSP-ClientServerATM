@@ -84,4 +84,15 @@ public class UserRepository implements CrudRepository<User, ObjectId>{
             mongoController.close();
         }
     }
+
+    public User getByEmail(String email) throws SQLException {
+        MongoDBController mongoController = MongoDBController.getInstance();
+        mongoController.open();
+        MongoCollection<User> userCollection = mongoController.getCollection("ATM", "users", User.class);
+        User user = userCollection.find(eq("email", email)).first();
+        mongoController.close();
+        if (user != null)
+            return user;
+        throw new SQLException("Error UserRepository dont exist user with email: " + email);
+    }
 }
