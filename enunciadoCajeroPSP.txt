@@ -1,0 +1,20 @@
+--- Cajero Automatico ---
+
+1. Metemos el EMAIL/PIN	-->	PIN=CIFRADO EN SHA512 O MD5
+
+2. Seleccionar Opcion Menu
+	- Sacar Efectivo -> Siempre y cuando tengamos saldo
+	- Consultar efectivo
+	-Consultar Movimientos
+	- Ingresos -> no mas de 1000€
+
+	-Salir 
+
+-------------------------------------
+Usuario->email,password,saldo
+Movimientos->momento,tipo,valor,usuario.
+
+Investigar:
+Como iniciar el servicio nada mas encender el ordenador.
+Nada mas escribir el pin en el cliente se cifra y se envia al servidor cifrado ya.
+Fichero log para ver si has iniciado sesion o se ha salido. Log4J

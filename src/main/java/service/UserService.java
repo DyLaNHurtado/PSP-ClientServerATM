@@ -43,6 +43,7 @@ public class UserService extends BaseService<User, ObjectId, UserRepository> {
     }
 
     public UserDTO getUserByEmail(String email) throws SQLException {
+
         return mapper.toDTO(repository.getByEmail(email));
     }
 

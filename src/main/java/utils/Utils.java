@@ -33,7 +33,7 @@ public class Utils {
 
         Pattern pattern = Pattern.compile(regExpn,Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(inputStr);
-
+        System.out.println(matcher.matches());
         return matcher.matches();
     }
 

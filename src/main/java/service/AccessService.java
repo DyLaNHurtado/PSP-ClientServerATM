@@ -30,7 +30,7 @@ public class AccessService {
             UserController userController = UserController.getInstance();
             userDTO = userController.getUserByEmail(email);
             if (userDTO != null) {
-                return pin.equals(userDTO.getPin()) && email.equals(userDTO.getEmail());
+                return utils.toSHA512(userDTO.getPin()).equals(pin) && userDTO.getEmail().equals(email);
             } else {
                 System.err.println("Could not identify this user !");
                 return false;

@@ -83,7 +83,7 @@ public class UserController {
         try{
             return userService.getUserByEmail(email);
         } catch (SQLException e) {
-            System.err.println("Error UserController en getUserById: " + e.getMessage());
+            System.err.println("Error UserController en getUserByEmail: " + e.getMessage());
             return null;
         }
     }

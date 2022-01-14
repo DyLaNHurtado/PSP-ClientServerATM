@@ -6,12 +6,12 @@ import utils.Utils;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
-    private static final int DAILY_LIMIT = 3000;
     private final int port = 8888;
     private InetAddress address;
     private Socket socket;
@@ -148,12 +148,7 @@ public class Client {
     private void withdrawCash() {
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("How much cash do you want to withdraw ? REMAINING DAILY LIMIT: " + DAILY_LIMIT);
-        if (DAILY_LIMIT == 0) {
-            System.out.println("You have reached your daily limit");
-            System.out.println("Backing to menu...");
-            mainMenu();
-        }
+        System.out.println("How much cash do you want to withdraw ? : ");
         if (userDTO.getCash() == 0) {
             System.out.println("Bad news... you have run out of cash...");
             System.out.println("Backing to menu...");
@@ -257,10 +252,11 @@ public class Client {
                 if (isCorrect) {
                     // Recibimos el token de conexion
                     TOKEN = dataInputStream.readLong();
+                    mainMenu();
                 } else {
                     System.out.println("Client: Could not be identified");
                     //cerramos la conexion
-                    this.mainMenu();
+                    this.logIn();
                 }
             } catch (IOException ex) {
                 System.err.println("Client->ERROR: Cannot identify " + ex.getMessage());
@@ -268,7 +264,7 @@ public class Client {
         } else {
             System.out.println("Client: Could not be identified");
             //cerramos la conexion
-            this.mainMenu();
+            this.logIn();
         }
         this.disconnectServer();
 

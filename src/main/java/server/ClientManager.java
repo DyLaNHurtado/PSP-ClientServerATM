@@ -104,7 +104,7 @@ public class ClientManager extends Thread {
             }
 
         } catch (IOException ex) {
-            System.err.println("ServidorGC -> ERROR: optener tipo de opcion " + ex.getMessage());
+            System.err.println("ServidorGC -> ERROR: Get option type " + ex.getMessage());
         }
     }
 
@@ -122,6 +122,7 @@ public class ClientManager extends Thread {
             System.out.println("ServerCM -> Processing log In");
             String email = dataInputStream.readUTF();
             String pin = dataInputStream.readUTF();
+            System.out.println(email + " "+ pin);
 
             AccessService a = AccessService.getInstance();
             if (a.indetificarUsuario(email, pin)) {
