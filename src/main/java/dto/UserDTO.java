@@ -5,14 +5,17 @@ import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 
+import java.io.Serializable;
+
 @Builder
-public class UserDTO {
+public class UserDTO implements Serializable {
     @BsonProperty("_id")
     @BsonId
     private ObjectId id;
     private String email;
     private String pin;
     private float cash;
+
 
     public ObjectId getId() {
         return id;

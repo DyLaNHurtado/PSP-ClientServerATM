@@ -7,9 +7,7 @@ import dto.UserDTO;
 import org.bson.types.ObjectId;
 import service.AccessService;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.time.Instant;
@@ -125,10 +123,13 @@ public class ClientManager extends Thread {
             System.out.println(email + " "+ pin);
 
             AccessService a = AccessService.getInstance();
-            if (a.indetificarUsuario(email, pin)) {
+            UserDTO userDTO = a.indetificarUsuario(email, pin);
+            if (userDTO!=null) {
                 dataOutputStream.writeBoolean(true);
                 TOKEN = Instant.now().getEpochSecond();
                 dataOutputStream.writeLong(TOKEN);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketClient.getOutputStream());
+                objectOutputStream.writeObject(userDTO);
             } else {
                 System.out.println("ServerCM -> Incorrect Email or PIN");
                 dataOutputStream.writeBoolean(false);

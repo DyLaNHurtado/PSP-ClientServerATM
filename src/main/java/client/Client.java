@@ -205,6 +205,7 @@ public class Client {
                 System.err.println("Client -> ERROR: Sending exit request " + ex.getMessage());
                 close(1);
             }
+            this.disconnectServer();
         }
     }
 
@@ -252,6 +253,9 @@ public class Client {
                 if (isCorrect) {
                     // Recibimos el token de conexion
                     TOKEN = dataInputStream.readLong();
+                    ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                    userDTO = (UserDTO) objectInputStream.readObject();
+                    System.out.println(userDTO.getEmail());
                     mainMenu();
                 } else {
                     System.out.println("Client: Could not be identified");
@@ -263,10 +267,8 @@ public class Client {
             }
         } else {
             System.out.println("Client: Could not be identified");
-            //cerramos la conexion
             this.logIn();
         }
-        this.disconnectServer();
 
     }
 }
