@@ -9,6 +9,7 @@ import service.MovementService;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MovementController {
 
@@ -84,7 +85,7 @@ public class MovementController {
     public String getAllMovementsJSON() {
         try {
             final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
-            return prettyGson.toJson(movementService.getAllMovements().stream().limit(25));
+            return prettyGson.toJson(movementService.getAllMovements().stream().limit(5).collect(Collectors.toList()));
         } catch (SQLException e) {
             System.err.println("Error MovementsController en getAllMovementsJSON: " + e.getMessage());
             return "error";

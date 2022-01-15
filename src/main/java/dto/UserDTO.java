@@ -1,16 +1,16 @@
 package dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonProperty;
+import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
 
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDTO implements Serializable {
-    @BsonProperty("_id")
-    @BsonId
     private ObjectId id;
     private String email;
     private String pin;

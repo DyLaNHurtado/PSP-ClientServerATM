@@ -2,15 +2,10 @@ package service;
 
 import controller.UserController;
 import dto.UserDTO;
-import model.User;
 import utils.Utils;
 
-import java.sql.ResultSet;
-import java.util.Objects;
-import java.util.Optional;
-
 public class AccessService {
-    // Patron Singleton -> Unsa sola instancia
+    // Singleton
     private static AccessService instance;
     private UserDTO userDTO;
     private AccessService() {
@@ -24,7 +19,7 @@ public class AccessService {
         return instance;
     }
 
-    public UserDTO indetificarUsuario(String email, String pin) {
+    public UserDTO identifyUser(String email, String pin) {
         Utils utils = Utils.getInstance();
         if (utils.validateEmail(email)) {
             UserController userController = UserController.getInstance();

@@ -12,7 +12,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
-    private final int port = 8888;
+    private final int PORT = 8888;
     private InetAddress address;
     private Socket socket;
     private boolean exit = false;
@@ -36,7 +36,7 @@ public class Client {
             checkAddress();
             logIn();
             mainMenu();
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | IOException e) {
             System.err.println("Client -> ERROR: Could not logIn");
         }
 
@@ -47,10 +47,10 @@ public class Client {
      */
     private void checkAddress() {
         try {
-            // Consigo la dirección
-            address = InetAddress.getLocalHost(); // dirección local (localhost)
+            // Get Address
+            address = InetAddress.getLocalHost(); // local address (localhost)
         } catch (java.net.UnknownHostException ex) {
-            System.err.println("Cliente->ERROR: Didnt find the server address " + ex.getMessage());
+            System.err.println("Client -> ERROR: Not found the server address " + ex.getMessage());
             isConnected = false;
             exit = true;
             System.exit(-1);
@@ -62,7 +62,7 @@ public class Client {
      */
     private void connectServer() {
         try {
-            socket = new Socket(address, port);
+            socket = new Socket(address, PORT);
             dataInputStream = new DataInputStream(socket.getInputStream());
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
             System.out.println("Client -> Connecting to server...");
@@ -76,11 +76,11 @@ public class Client {
     }
 
     /**
-     * Disconect the server(only the socket and this client, the server is open)
+     * Disconnect the server(only the socket and this client, the server is open)
      */
     private void disconnectServer() {
         try {
-            // Me desconecto
+            // Disconnect
             socket.close();
             dataInputStream.close();
             dataOutputStream.close();
@@ -98,7 +98,7 @@ public class Client {
     /**
      * Main Menu
      */
-    private void mainMenu() {
+    private void mainMenu() throws IOException, ClassNotFoundException {
         System.out.println("Welcome to your bank !");
         System.out.println("-----------------------------");
         System.out.println("1.- Withdraw cash");
@@ -111,7 +111,7 @@ public class Client {
         Scanner sc = new Scanner(System.in);
 
         do {
-            System.out.println("What do you do ? (1 - 5) ");
+            System.out.println("What do you do ? (1 - 5) \n>");
             option = sc.nextInt();
         } while (option < 1 || option > 5);
 
@@ -120,7 +120,7 @@ public class Client {
     }
 
 
-    private void selectOptionMenu(int option) {
+    private void selectOptionMenu(int option) throws IOException, ClassNotFoundException {
         switch (option) {
             case WITHDRAW_CASH:
                 withdrawCash();
@@ -134,7 +134,6 @@ public class Client {
                 break;
 
             case CONSULT_MOVEMENTS:
-
                 consultMovements();
                 break;
 
@@ -145,59 +144,79 @@ public class Client {
         }
     }
 
-    private void withdrawCash() {
+    private void withdrawCash() throws IOException, ClassNotFoundException {
         Scanner sc = new Scanner(System.in);
-
-        System.out.println("How much cash do you want to withdraw ? : ");
+        dataOutputStream.writeInt(WITHDRAW_CASH);
+        System.out.println("How much cash do you want to withdraw ? : \n>");
         if (userDTO.getCash() == 0) {
             System.out.println("Bad news... you have run out of cash...");
             System.out.println("Backing to menu...");
             mainMenu();
         }
         int value = sc.nextInt();
+        dataOutputStream.writeInt(value);
         if (userDTO.getCash() < value) {
             System.out.println("You can't withdraw that amount because you don't have it");
             System.out.println("Backing to menu...");
             mainMenu();
-        } else {
-            userDTO.setCash(userDTO.getCash() - value);
-            //TODO Mandar al servidor el nuevo usuario
         }
-
-
+        if(dataInputStream.readBoolean()){
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+            userDTO = (UserDTO) objectInputStream.readObject();
+            System.out.println("Operation Complete! Your cash now : "+userDTO.getCash() +" €"+
+                    "\nBacking to menu...");
+        }else{
+            mainMenu();
+        }
+        mainMenu();
     }
 
-    private void depositCash() {
+    private void depositCash() throws IOException, ClassNotFoundException {
         Scanner sc = new Scanner(System.in);
-        System.out.println("How much you want to deposit ? (0-1000)");
+        dataOutputStream.writeInt(DEPOSIT_CASH);
+        System.out.println("How much you want to deposit ? (0-1000): \n>");
         int value = sc.nextInt();
-        if (value < 0 || value > 1000) {
+        if (value <=0 || value > 1000) {
             System.out.println("You can not deposit that amount make sure it is between 0 and 1000");
             System.out.println("Backing to menu...");
             mainMenu();
         }
-        userDTO.setCash(userDTO.getCash() + value);
-        //TODO Mandar al servidor el nuevo usuario
+        dataOutputStream.writeInt(value);
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+        userDTO = (UserDTO) objectInputStream.readObject();
+        System.out.println("Operation Complete! Your cash now : "+userDTO.getCash() +" €"+
+                "\nBacking to menu...");
+        mainMenu();
 
     }
 
-    private void consultCash() {
-        //TODO Mandar al servidor que quieres hacer a traves de un movement
+    private void consultCash() throws IOException, ClassNotFoundException {
+        dataOutputStream.writeInt(CONSULT_CASH);
         System.out.println("You have " + userDTO.getCash() + " €");
+        System.out.println("Backing to menu...");
+        mainMenu();
     }
 
-    private void consultMovements() {
-        System.out.println("Your lastest movements " + userDTO.getCash() + " €");
+    private void consultMovements() throws IOException, ClassNotFoundException {
+        dataOutputStream.writeInt(CONSULT_MOVEMENTS);
+
+        System.out.println("Your latest movements : ");
+        String movements = dataInputStream.readUTF();
+        if(!movements.equals("error")){
+            System.out.println(movements);
+            System.out.println("Backing to menu...");
+            mainMenu();
+        }
+        System.out.println("ERROR: Could not consult the movements, try again!");
+        System.out.println("Backing to menu...");
+        mainMenu();
     }
 
 
     private void exit() {
         this.exit = true;
         if (TOKEN > 0) {
-            // Send to the server to disconnect
-            System.out.println("Cliente -> Requesting exit");
-            // Connect to the server
-            this.connectServer();
+            System.out.println("Client -> Requesting exit");
             try {
                 dataOutputStream.writeInt(EXIT);
                 close(0);
@@ -214,7 +233,7 @@ public class Client {
         if (isConnected) {
             this.disconnectServer();
         }
-        System.out.println("Cliente: *** END ***");
+        System.out.println("Client: *** END ***");
         System.exit(option);
     }
 
@@ -233,33 +252,31 @@ public class Client {
             logIn();
         }
         System.out.println("Input your PIN:");
-        String pin = Utils.getInstance().toSHA512(sc.nextLine()); // Encripting
+        String pin = Utils.getInstance().toSHA512(sc.nextLine()); // Encrypting
 
         this.connectServer();
         // If connect go to identify
         if (this.isConnected) {
-            System.out.println("Cliente -> Requesting identify...");
+            System.out.println("Client -> Requesting identify...");
             try {
 
-                // Indico la opción
+                // Put the option
                 dataOutputStream.writeInt(LOGIN);
 
                 // Send to server the email and PIN
                 dataOutputStream.writeUTF(email);
                 dataOutputStream.writeUTF(pin);
 
-                // Recibimos la respuesta
+                // receive the response
                 boolean isCorrect = dataInputStream.readBoolean();
                 if (isCorrect) {
-                    // Recibimos el token de conexion
+                    // receive the connection token
                     TOKEN = dataInputStream.readLong();
                     ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                     userDTO = (UserDTO) objectInputStream.readObject();
-                    System.out.println(userDTO.getEmail());
                     mainMenu();
                 } else {
                     System.out.println("Client: Could not be identified");
-                    //cerramos la conexion
                     this.logIn();
                 }
             } catch (IOException ex) {

@@ -1,13 +1,14 @@
 package dto;
 
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import model.User;
 import org.bson.types.ObjectId;
 
 import java.time.Instant;
-import java.time.LocalDate;
 
 @Builder
+@NoArgsConstructor
 public class MovementDTO {
     private ObjectId id;
     private Instant moment;

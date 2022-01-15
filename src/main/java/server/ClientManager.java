@@ -8,7 +8,6 @@ import org.bson.types.ObjectId;
 import service.AccessService;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.time.Instant;
 
@@ -25,6 +24,7 @@ public class ClientManager extends Thread {
     private static final int CONSULT_CASH = 3;
     private static final int CONSULT_MOVEMENTS = 4;
     private static final int EXIT = 5;
+    private UserDTO userDTO;
 
     DataInputStream dataInputStream = null;
     DataOutputStream dataOutputStream = null;
@@ -78,9 +78,8 @@ public class ClientManager extends Thread {
         try {
             // Procesamos la información
             // Por defecto leo mensajes cortos
-            int opcion = dataInputStream.readInt();
-            // según la pción
-            switch (opcion) {
+            int option = dataInputStream.readInt();
+            switch (option) {
                 case LOGIN:
                     logIn();
                     break;
@@ -123,7 +122,7 @@ public class ClientManager extends Thread {
             System.out.println(email + " "+ pin);
 
             AccessService a = AccessService.getInstance();
-            UserDTO userDTO = a.indetificarUsuario(email, pin);
+            userDTO = a.identifyUser(email, pin);
             if (userDTO!=null) {
                 dataOutputStream.writeBoolean(true);
                 TOKEN = Instant.now().getEpochSecond();
@@ -149,12 +148,12 @@ public class ClientManager extends Thread {
         MovementController movementController = MovementController.getInstance();
 
 
-        String email = dataInputStream.readUTF();
-        UserDTO userDTO = userController.getUserByEmail(email);
-        if (userDTO != null && userDTO.getCash()>0) {
+        if (userDTO != null && userDTO.getCash()>0 && userDTO.getCash()>value) {
             userDTO.setCash(userDTO.getCash() - value);
             userController.updateUser(userDTO);
             dataOutputStream.writeBoolean(true);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketClient.getOutputStream());
+            objectOutputStream.writeObject(userDTO);
             movementController.postMovement(new MovementDTO(new ObjectId(), Instant.now(), "WITHDRAW_CASH", value, userDTO));
         } else {
             dataOutputStream.writeBoolean(false);
@@ -163,31 +162,24 @@ public class ClientManager extends Thread {
         controlConnection();
     }
 
-    /**
-     * Obtenemos el número de suspensos
-     */
+
     private void depositCash() throws IOException {
         System.out.println("ServerCM -> Process the deposit operation...");
 
         MovementController movementController = MovementController.getInstance();
         UserController userController = UserController.getInstance();
-        String email = dataInputStream.readUTF();
-        UserDTO userDTO = userController.getUserByEmail(email);
         int value = dataInputStream.readInt();
-        if (value < 1000 && value > 0) {
-
+        if (value <= 1000 && value > 0) {
             if (userDTO != null) {
                 userDTO.setCash(userDTO.getCash() + value);
                 userController.updateUser(userDTO);
-                dataOutputStream.writeBoolean(true);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketClient.getOutputStream());
+                objectOutputStream.writeObject(userDTO);
                 movementController.postMovement(new MovementDTO(new ObjectId(), Instant.now(), "DEPOSIT_CASH", value, userDTO));
             } else {
-                dataOutputStream.writeBoolean(false);
                 System.out.println("ServerCM: -> Not found user");
-
             }
         } else {
-            dataOutputStream.writeBoolean(false);
             System.out.println("ServerCM-> Incorrect value for deposit the range is 0-1000");
         }
         controlConnection();
@@ -196,27 +188,8 @@ public class ClientManager extends Thread {
 
     private void consultCash() throws IOException {
         System.out.println("ServidorGC->Process consult cash");
-
-        UserController userController = UserController.getInstance();
-        String email = dataInputStream.readUTF();
-        UserDTO userDTO = userController.getUserByEmail(email);
-
-        if (userDTO != null) {
-            float cash = userDTO.getCash();
-            try {
-                dataOutputStream.writeFloat(cash);
-                MovementController movementController = MovementController.getInstance();
-                movementController.postMovement(new MovementDTO(new ObjectId(),Instant.now(),"CONSULT_CASH",0,userDTO));
-            } catch (IOException ex) {
-                System.err.println("ServidorGC->ERROR: consultCash " + ex.getMessage());
-            }
-        } else {
-            try {
-                dataOutputStream.writeFloat(-1);
-            } catch (IOException ex) {
-                System.err.println("ServidorGC->ERROR: consultCash could find user" + ex.getMessage());
-            }
-        }
+        MovementController movementController = MovementController.getInstance();
+        movementController.postMovement(new MovementDTO(new ObjectId(),Instant.now(),"CONSULT_CASH",0,userDTO));
         controlConnection();
     }
 
@@ -224,9 +197,6 @@ public class ClientManager extends Thread {
     private void consultMovements() {
         System.out.println("ServidorGC->Processing consult Movements");
         try {
-            UserController userController = UserController.getInstance();
-            String email = dataInputStream.readUTF();
-            UserDTO userDTO = userController.getUserByEmail(email);
 
             MovementController movementController = MovementController.getInstance();
             String movements = movementController.getAllMovementsJSON();
